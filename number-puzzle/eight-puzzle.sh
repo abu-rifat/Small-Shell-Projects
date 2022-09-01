@@ -1,6 +1,6 @@
 #!/bin/bash
 
-scriptname=${0##*/}
+#scriptname=${0##*/}
 
 board=( {1..8} "" )
 target=( "${board[@]}" )
