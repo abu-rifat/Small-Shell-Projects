@@ -93,10 +93,20 @@ signUp () {
         REGEX='^[a-z]+$'
         if [[ ! $username =~ $REGEX ]]
         then
-            echo -e "    Invalid username..."
+            read -p "    Invalid username, want to try again? [Y/N]: " tryagain
+            case $tryagain in
+            N | n)
+                return
+                ;;
+            esac
         elif [[ -f "$dir" ]]
         then
-            echo -e "    The username: $username is taken, please try another one..."
+            read -p "    The username: $username is taken, want to try again? [Y/N]: " tryagain
+            case $tryagain in
+            N | n)
+                return
+                ;;
+            esac
         else
             break
         fi
@@ -107,7 +117,12 @@ signUp () {
         REGEX='^.{6,10}$'
         if [[ ! $password =~ $REGEX ]]
         then
-            echo -e "    Password length must be between 6 to 10 characters..."
+            read -p "    Password length must be between 6 to 10 characters, want to try again? [Y/N]: " tryagain
+            case $tryagain in
+            N | n)
+                return
+                ;;
+            esac
         else
             break
         fi
@@ -120,7 +135,7 @@ signUp () {
             read -p "    The two passwords didn't matched, want to try again? [Y/N]: " tryagain
             case $tryagain in
             N | n)
-                break
+                return
                 ;;
             esac
         else
@@ -146,15 +161,42 @@ login () {
             read -p "    Invalid username, want to try again? [Y/N]: " tryagain
             case $tryagain in
             N | n)
-                break
+                return
                 ;;
             esac
         elif [[ -f "$dir" ]]
         then
-            validUser=true
-            curruser=$username
-            read -p "    Welcome $username, press anykey to continue:" hold
-            break;
+            while : ; do
+                read -p "    Enter the password(length: 6-10):" password
+                REGEX='^.{6,10}$'
+                if [[ ! $password =~ $REGEX ]]
+                then
+                    read -p "    Password length must be between 6 to 10 characters, want to try again? [Y/N]: " tryagain
+                    case $tryagain in
+                    N | n)
+                        return
+                        ;;
+                    esac
+                else
+                    savedPass=$(head -n 1 $dir)
+                    if [[ $password = $savedPass ]]
+                    then
+                        validUser=true
+                        curruser=$username
+                        read -p "    Welcome $username, press anykey to continue:" hold
+                        return;
+                    else
+                        read -p "    Wrong password, want to try again? [Y/N]: " tryagain
+                        case $tryagain in
+                        N | n)
+                            return
+                            ;;
+                        esac
+                    fi
+                fi
+            done
+            
+            
         else
             read -p "    User doesn't exist, want to try again? [Y/N]: " tryagain
             case $tryagain in
