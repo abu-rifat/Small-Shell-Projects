@@ -17,6 +17,16 @@ then
   mkdir "userpass"
 fi
 
+if [ ! -d "scores" ]
+then
+  mkdir "scores"
+fi
+
+if [ ! -f "leaderboard.score" ]
+then
+    touch leaderboard.score
+fi
+
 gameBanner () {
     clear
     echo ""
@@ -83,6 +93,7 @@ userMenu () {
 
 
 
+
 signUp () {
     gameBanner
     echo "    New User SignUp:"
@@ -90,6 +101,7 @@ signUp () {
     while : ; do
         read -p "    Enter username(Only lowercase English letters): " username
         dir="./userpass/$username.usr"
+        scho="./scores/$username.usr"
         REGEX='^[a-z]+$'
         if [[ ! $username =~ $REGEX ]]
         then
@@ -140,6 +152,7 @@ signUp () {
             esac
         else
             echo $password > $dir
+            touch $scho
             validUser=true
             curruser=$username
             read -p "    Welcome $username, press anykey to continue:" hold
