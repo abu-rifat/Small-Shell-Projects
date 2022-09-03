@@ -167,7 +167,6 @@ login () {
                         ;;
                     esac
                 else
-                    #savedPass=$(head -n 1 $dir)
                     savedPass=""
                     while read -r line; do
                         savedPass=$line
@@ -271,8 +270,6 @@ logOut() {
     break;
 }
 
-#Game Code
-
 board=( {1..8} "" )
 target=( "${board[@]}" )
 empty=8
@@ -346,7 +343,7 @@ random_move()
 
 shuffle() 
 {
-  local n=0 max=$(( $RANDOM % 2 + 2 ))
+  local n=0 max=$(( $RANDOM % 150 + 100 ))
   while [ $(( n += 1 )) -lt $max ]
   do
      borders
@@ -382,7 +379,7 @@ newGame() {
             linesdir=$(wc -l < $dir)
             echo "$linesdir $moves" >> $dir
             sortLeaderboard
-            #sortScore
+            sortScore
             printf "Congratulations, Completed in %d moves! Press Anykey to Continue... " "$moves"
             read hold
             break
@@ -445,8 +442,7 @@ sortLeaderboard () {
     while read -r no score thisuser; do
         echo "$score $thisuser" >> $tmpdir
     done < $tmp2dir
-    #sort -k1,1 -k2,2 $tmpdir > $tmp2dir
-    sort $tmpdir > $tmp2dir
+    sort -n $tmpdir > $tmp2dir
     no=1
     >$dir
     echo "No. Score Username" > $dir
@@ -457,8 +453,6 @@ sortLeaderboard () {
     rm $tmpdir
     rm $tmp2dir
 }
-
-#Game Code End
 
 while true; 
 do
