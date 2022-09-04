@@ -1,2 +1,6 @@
-No. Score
-1 3
+No. Score Word
+1 1 OFTEN 
+2 2 OFTEN 
+3 3 BUNCH 
+4 6 BEGIN 
+5 6 RAPID 

@@ -1,7 +1,7 @@
 #!/bin/bash
 
-validUser=false
-curruser=""
+loggedin=false
+activeUser=""
 
 
 if [ ! -d "userpass" ]
@@ -14,37 +14,33 @@ then
   mkdir "scores"
 fi
 
-if [ ! -f "leaderboard.score" ]
+if [ ! -f "top-score.rec" ]
 then
-    echo "No. Score Username" > leaderboard.score
+    echo "No. Score Username Word" > top-score.rec
 fi
 
-gameBanner () {
-    tput clear
-    #tput setaf 8
+header () {
+    clear
     echo ""
-    echo "🅆 🄾 🅁 🄳 🅼 🅸 🅽 🅴 🆁"
+    echo "🅆 🄾 🅁 🄳 🅼 🅸 🅽 🅸 🅽 🅶"
     echo ""
-    tput sgr0
 }
 
-mainMenu () {
-    gameBanner
-    echo "Signup / Login:"
+authentication () {
+    header
+    echo "1. SignUp"
+    echo "2. SignIn"
+    echo "3. Quit"
     echo ""
-    echo "N - New User SignUp"
-    echo "L - Existing User Login"
-    echo "E - Exit"
-    echo ""
-    read -p "Enter your choice: " option
+    read -p "Enter the Choice No: " option
     case $option in
-        N | n)
+        1)
             signUp
         ;;
-        L | l)
-            login
+        2)
+            signIn
         ;;
-        E | e)
+        3)
         clear
         exit
         ;;
@@ -55,217 +51,211 @@ mainMenu () {
 }
 
 signUp () {
-    gameBanner
-    echo "Signup:"
+    header
+    echo "𝕊 𝕚 𝕘 𝕟 𝕌 𝕡"
     echo ""
     while : ; do
-        read -p "Enter username(Only lowercase English letters): " username
+        read -p "Username(Example: abcd or abcd123): " username
         dir="./userpass/$username.usr"
         scho="./scores/$username.sco"
-        REGEX='^[a-z]+$'
+        REGEX='^[a-z][a-z0-9]+$'
         if [[ ! $username =~ $REGEX ]]
         then
-            read -p "Invalid username, want to try again? [Y/N]: " tryagain
-            case $tryagain in
-            N | n)
-                return
-                ;;
-            esac
+            read -p "Invalid username..."
         elif [[ -f "$dir" ]]
         then
-            read -p "The username: $username is taken, want to try again? [Y/N]: " tryagain
-            case $tryagain in
-            N | n)
-                return
-                ;;
-            esac
+            read -p "The username: $username is not available, try another one..."
         else
             break
         fi
     done
 
     while : ; do
-        stty -echo
-        read -p "Enter new password(length: 6-10):" password
-        stty echo
-        echo ""
-        REGEX='^.{6,10}$'
+        read -p "Enter new password(max-length: 5):" password
+        REGEX='^.{1,5}$'
         if [[ ! $password =~ $REGEX ]]
         then
-            read -p "Password length must be between 6 to 10 characters, want to try again? [Y/N]: " tryagain
-            case $tryagain in
-            N | n)
-                return
-                ;;
-            esac
+            echo "Password length must be between 1 to 5..."
         else
             break
         fi
     done
     
     while : ; do
-        stty -echo
-        read -p "Enter the password again:" rePassword
-        stty echo
-        echo ""
+        read -p "Re-enter the password:" rePassword
         if [[ ! $password == $rePassword ]]
         then
-            read -p "The two passwords didn't matched, want to try again? [Y/N]: " tryagain
-            case $tryagain in
-            N | n)
-                return
-                ;;
-            esac
+            read -p "Passwords didn't match..."
         else
-
             echo "$(md5sum <<<$password)" > $dir
-            echo "No. Score" > $scho
-            validUser=true
-            curruser=$username
-            read -p "Welcome $username! Press Anykey to Continue.. " hold
+            echo "No. Score Word" > $scho
+            loggedin=true
+            activeUser=$username
+            read -p "SignUp successfull, press any key to continue..." hold
             break;
         fi
     done
 }
 
-login () {
-    gameBanner
-    echo "Login:"
+signIn () {
+    header
+    echo "𝕊 𝕚 𝕘 𝕟 𝕀 𝕟"
     echo ""
     while : ; do
-        read -p "Enter username(Only lowercase English letters): " username
+        read -p "Username: " username
         dir="./userpass/$username.usr"
-        REGEX='^[a-z]+$'
+        REGEX='^[a-z][a-z0-9]+$'
         if [[ ! $username =~ $REGEX ]]
         then
-            read -p "Invalid username, want to try again? [Y/N]: " tryagain
-            case $tryagain in
-            N | n)
-                return
-                ;;
-            esac
+            read -p "Invalid username..."
         elif [[ -f "$dir" ]]
         then
             while : ; do
-                stty -echo
-                read -p "Enter the password(length: 6-10):" password
-                stty echo
-                echo ""
-                REGEX='^.{6,10}$'
-                if [[ ! $password =~ $REGEX ]]
+                savedPass=""
+                while read -r line; do
+                    savedPass=$line
+                    break
+                done < $dir
+                read -p "Password: " password
+                passHash=$(md5sum <<<$password)
+                if [[ $passHash = $savedPass ]]
                 then
-                    read -p "Password length must be between 6 to 10 characters, want to try again? [Y/N]: " tryagain
+                    loggedin=true
+                    activeUser=$username
+                    read -p "SignIn successfull, press any key to continue..." hold
+                    return;
+                else
+                    read -p "Wrong password, want to try again? [Y/N]: " tryagain
                     case $tryagain in
                     N | n)
                         return
                         ;;
                     esac
-                else
-                    savedPass=""
-                    while read -r line; do
-                        savedPass=$line
-                        break
-                    done < $dir
-                    passHash=$(md5sum <<<$password)
-                    if [[ $passHash = $savedPass ]]
-                    then
-                        validUser=true
-                        curruser=$username
-                        read -p "Welcome $username! Press Anykey to Continue.. " hold
-                        return;
-                    else
-                        read -p "Wrong password, want to try again? [Y/N]: " tryagain
-                        case $tryagain in
-                        N | n)
-                            return
-                            ;;
-                        esac
-                    fi
                 fi
             done
-            
-            
         else
-            read -p "User doesn't exist, want to try again? [Y/N]: " tryagain
-            case $tryagain in
-            N | n)
-                break
-                ;;
-            esac
+            read -p "Not a valid user..."
+            break;
         fi
     done
 }
 
-userMenu () {
-    gameBanner
-    echo "Welcome, $username!"
+gameMenu () {
+    header
+    echo "Hay $username, welcome to WordMining!"
     echo ""
-    echo "N - Start New Game"
-    echo "M - My Scoreboard"
-    echo "L - Leaderboard"
-    echo "X - Logout"
-    echo "E - Exit"
+    echo "1 - Play Now"
+    echo "2 - My Scores"
+    echo "3 - Top Scores"
+    echo "4 - SignOut"
+    echo "5 - Quit"
     echo ""
-    read -p "Enter your choice: " option
+    read -p "Enter the Choice No: " option
     case $option in
-        N | n)
-            wordle
+        1)
+            wordMining
         ;;
-        M | m)
+        2)
             myScore
         ;;
-        L | l)
+        3)
             leaderBoard
         ;;
-        X | x)
+        4)
             logOut
         ;;
-        E | e)
+        5)
             clear
             exit
         ;;
         *)
-            read -p "Invalid Choice, Press Anykey to Continue.. " hold
+            read -p "Invalid Choice, Press Any key to Continue.. " hold
             read hold
         ;; 
     esac
 }
 
 myScore () {
-    gameBanner
+    header
     dir="./scores/$username.sco"
-    echo "Your Scoreboard:"
+    echo "My Scores: "
     echo ""
     column $dir -tc2
     echo ""
-    read -p "Press Anykey to Continue.. " hold
+    read -p "Press Any key to Continue.. " hold
 }
 
 leaderBoard () {
-    gameBanner
-    dir="./leaderboard.score"
-    echo "Leaderboard:"
+    header
+    dir="./top-score.rec"
+    echo "Top Scores:"
     echo ""
     column $dir -tc2
     echo ""
-    read -p "Press Anykey to Continue.. " hold
+    read -p "Press Any key to Continue.. " hold
 }
 
 logOut() {
-    validUser=false
-    curruser=""
-    read -p "See you soon, Press Anykey to Continue.. " hold
+    loggedin=false
+    activeUser=""
+    read -p "SignOut Successfull, press any key to continue... " hold
     break;
 }
+WORD=""
+selectlevel() {
+    while : ; do
+        header
+        echo "Select your level!"
+        echo ""
+        echo "1 - Easy(most common English words with distinct letters)"
+        echo "2 - Medium(medium common English words with distinct letters)"
+        echo "3 - Medium Hard(medium common English words, may contain duplicate letters)"
+        echo "4 - Hard(less common English words, may contain duplicate letters)"
+        echo ""
+        read -p "Enter the Choice No: " option
+        case $option in
+            1)
+                FILE=word-list-easy.txt
+                NUM=$(wc -l < ${FILE})
+                let X=${RANDOM}%${NUM}+1
+                WORD=$(sed -n ${X}p ${FILE})
+                WORD=$(echo "$WORD" | awk '{print toupper($0)}')
+                return
+            ;;
+            2)
+                FILE=word-list-medium.txt
+                NUM=$(wc -l < ${FILE})
+                let X=${RANDOM}%${NUM}+1
+                WORD=$(sed -n ${X}p ${FILE})
+                WORD=$(echo "$WORD" | awk '{print toupper($0)}')
+                return
+            ;;
+            3)
+                FILE=word-list-medium-hard.txt
+                NUM=$(wc -l < ${FILE})
+                let X=${RANDOM}%${NUM}+1
+                WORD=$(sed -n ${X}p ${FILE})
+                WORD=$(echo "$WORD" | awk '{print toupper($0)}')
+                return
+            ;;
+            4)
+                FILE=word-list-hard.txt
+                NUM=$(wc -l < ${FILE})
+                let X=${RANDOM}%${NUM}+1
+                WORD=$(sed -n ${X}p ${FILE})
+                WORD=$(echo "$WORD" | awk '{print toupper($0)}')
+                return
+            ;;
+            *)
+                read -p "Invalid Choice, Press Any key to Continue.. " hold
+            ;; 
+        esac
+    done
+}
 
-wordle() {
-    gameBanner
-    FILE=word-list-2.txt
-    NUM=$(wc -l < ${FILE})
-    let X=${RANDOM}%${NUM}+1
-    WORD=$(sed -n ${X}p ${FILE})
-    WORD=$(echo "$WORD" | awk '{print toupper($0)}')
-
+wordMining() {
+    selectlevel
+    header
     echo -e "
 Welcome to Wordle!!!
 
@@ -315,13 +305,13 @@ Now, it's time to play the game, are you ready? If yes, press Enter:
         echo $STATE
         if [ $USER_GUESS == $WORD ]
         then
-            led="./leaderboard.score"
+            led="./top-score.rec"
             dir="./scores/$username.sco"
             linesled=$(wc -l < $led)
-            TRIES=$(expr $TRIES + 1)
-            echo "$linesled $TRIES $username" >> $led
+            #TRIES=$(expr $TRIES + 1)
+            echo "$linesled $TRIES $username $WORD" >> $led
             linesdir=$(wc -l < $dir)
-            echo "$linesdir $TRIES" >> $dir
+            echo "$linesdir $TRIES $WORD" >> $dir
             sortLeaderboard
             sortScore
             printf "You won! Press Anykey to Continue... " "$moves"
@@ -350,15 +340,15 @@ sortScore () {
     tmpdir="./.tmp"
     tail -n +2 $dir > $tmp2dir
     >$tmpdir
-    while read -r no score; do
-        echo "$score" >> $tmpdir
+    while read -r no score word; do
+        echo "$score $word" >> $tmpdir
     done < $tmp2dir
     sort -n $tmpdir > $tmp2dir
     no=1
     >$dir
-    echo "No. Score" > $dir
+    echo "No. Score Word" > $dir
     while read -r score; do
-        echo "$no $score" >> $dir
+        echo "$no $score $word" >> $dir
         no=$(( $no + 1 ))
     done < $tmp2dir
     rm $tmpdir
@@ -374,20 +364,20 @@ sortLeaderboard () {
     then
         touch .tmp2
     fi
-    dir="./leaderboard.score"
+    dir="./top-score.rec"
     tmp2dir="./.tmp2"
     tmpdir="./.tmp"
     tail -n +2 $dir > $tmp2dir
     >$tmpdir
-    while read -r no score thisuser; do
-        echo "$score $thisuser" >> $tmpdir
+    while read -r no score thisuser word; do
+        echo "$score $thisuser $word" >> $tmpdir
     done < $tmp2dir
     sort -n $tmpdir > $tmp2dir
     no=1
     >$dir
-    echo "No. Score Username" > $dir
+    echo "No. Score Username Word" > $dir
     while read -r score nowuser; do
-        echo "$no $score $nowuser" >> $dir
+        echo "$no $score $nowuser $word" >> $dir
         no=$(( $no + 1 ))
     done < $tmp2dir
     rm $tmpdir
@@ -396,12 +386,12 @@ sortLeaderboard () {
 
 while true; 
 do
-    gameBanner
-    if [ $validUser = true ]
+    header
+    if [ $loggedin = true ]
     then
-        userMenu
+        gameMenu
     else
-        mainMenu
+        authentication
     fi
     
 done
