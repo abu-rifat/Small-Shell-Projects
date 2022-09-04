@@ -268,7 +268,7 @@ I won't tell you the word directly. But, I will give you 3 type of clues.
 Now, it's time to play the game, are you ready? If yes, press Enter:
 "
     read entt
-    echo "$WORD"
+    #echo "$WORD"
     GO_ON=1
     TRIES=0
     MAXTRY=6
